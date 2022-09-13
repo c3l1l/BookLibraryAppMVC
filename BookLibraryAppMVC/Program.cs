@@ -1,8 +1,11 @@
+using BookLibraryAppMVC.DAL;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-
+builder.Services.AddDbContext<BookLibraryDBContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("BookLibraryDB")));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -15,7 +15,7 @@ namespace BookLibraryAppMVC.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            return RedirectToAction("Index","Books");
         }
 
         public IActionResult Privacy()
