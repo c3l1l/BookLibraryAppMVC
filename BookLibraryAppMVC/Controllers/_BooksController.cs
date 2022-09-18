@@ -8,41 +8,53 @@ using Microsoft.EntityFrameworkCore;
 using BookLibraryAppMVC.DAL;
 using BookLibraryAppMVC.Models;
 using BookLibraryAppMVC.DAL.Abstract;
-using NuGet.Protocol;
 
 namespace BookLibraryAppMVC.Controllers
 {
-    public class BooksController : Controller
+    public class _BooksController : Controller
     {
-        private readonly IBookRepository _bookRepository;
-        private readonly IAuthorRepository _authorRepository;
-        private readonly IPublisherRepository _publisherRepository;
+         private readonly BookLibraryDBContext _context;
+       
 
-        public BooksController(IBookRepository bookRepository,IAuthorRepository authorRepository,IPublisherRepository publisherRepository)
-        {           
-            _bookRepository = bookRepository;
-            _authorRepository = authorRepository;
-            _publisherRepository = publisherRepository;
+        public _BooksController(BookLibraryDBContext context)
+      
+        {
+            //_context = context;
+           
         }
 
         // GET: Books
         public async Task<IActionResult> Index()
-        {                                 
-            var bookLibraryDBContext = _bookRepository.GetAll();
-           
-            return View(await bookLibraryDBContext);
+        {
+            var bookLibraryDBContext = _context.Books.Include(b => b.Author).Include(b => b.Publisher);
+            return View(await bookLibraryDBContext.ToListAsync());
         }
 
         // GET: Books/Details/5
-        public async Task<IActionResult> Details(int id)
-        {   
-           return View(await _bookRepository.GetById(id));
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null || _context.Books == null)
+            {
+                return NotFound();
+            }
+
+            var book = await _context.Books
+                .Include(b => b.Author)
+                .Include(b => b.Publisher)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            return View(book);
         }
 
         // GET: Books/Create
-        public async Task<IActionResult> Create()
-        {           
-            await GetAuthorAndPuslisherSelectList();
+        public IActionResult Create()
+        {
+            ViewData["AuthorId"] = new SelectList(_context.Authors, "Id", "AuthorName");
+            ViewData["PublisherId"] = new SelectList(_context.Publishers, "Id", "PublisherName");
             return View();
         }
 
@@ -61,28 +73,30 @@ namespace BookLibraryAppMVC.Controllers
                 _book.PublisherId = book.PublisherId;
                 _book.DateReleased = book.DateReleased;
                 _book.PageCount = book.PageCount;
-               await _bookRepository.Create(_book);              
+                _context.Add(_book);
+                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-
-            await GetAuthorAndPuslisherSelectList();
+            ViewData["AuthorId"] = new SelectList(_context.Authors, "Id", "Id", book.AuthorId);
+            ViewData["PublisherId"] = new SelectList(_context.Publishers, "Id", "Id", book.PublisherId);
             return View(book);
         }
 
         // GET: Books/Edit/5
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null ||await _bookRepository.GetAll() == null)
+            if (id == null || _context.Books == null)
             {
                 return NotFound();
             }
 
-            var book = await _bookRepository.GetById(id);
+            var book = await _context.Books.FindAsync(id);
             if (book == null)
             {
                 return NotFound();
             }
-            await GetAuthorAndPuslisherSelectList();
+            ViewData["AuthorId"] = new SelectList(_context.Authors, "Id", "AuthorName", book.AuthorId);
+            ViewData["PublisherId"] = new SelectList(_context.Publishers, "Id", "PublisherName", book.PublisherId);
             return View(book);
         }
 
@@ -102,28 +116,39 @@ namespace BookLibraryAppMVC.Controllers
             {
                 try
                 {
-                 await _bookRepository.Update(book);
-                    
+                    _context.Update(book);
+                    await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    throw;
+                    if (!BookExists(book.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
                 return RedirectToAction(nameof(Index));
             }
-           await GetAuthorAndPuslisherSelectList();
+            ViewData["AuthorId"] = new SelectList(_context.Authors, "Id", "AuthorName", book.AuthorId);
+            ViewData["PublisherId"] = new SelectList(_context.Publishers, "Id", "PublisherName", book.PublisherId);
             return View(book);
         }
 
         // GET: Books/Delete/5
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null || await _bookRepository.GetAll() == null)
+            if (id == null || _context.Books == null)
             {
                 return NotFound();
             }
 
-            var book = await _bookRepository.GetById(id);
+            var book = await _context.Books
+                .Include(b => b.Author)
+                .Include(b => b.Publisher)
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (book == null)
             {
                 return NotFound();
@@ -137,24 +162,23 @@ namespace BookLibraryAppMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (await _bookRepository.GetAll() == null)
+            if (_context.Books == null)
             {
                 return Problem("Entity set 'BookLibraryDBContext.Books'  is null.");
             }
-            var book = await _bookRepository.GetById(id);
+            var book = await _context.Books.FindAsync(id);
             if (book != null)
             {
-             await _bookRepository.Delete(book);
+                _context.Books.Remove(book);
             }
 
-           
+            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private async Task GetAuthorAndPuslisherSelectList()
+        private bool BookExists(int id)
         {
-            ViewData["AuthorId"] = new SelectList(await _authorRepository.GetAll(), "Id", "AuthorName");
-            ViewData["PublisherId"] = new SelectList(await _publisherRepository.GetAll(), "Id", "PublisherName");
+            return (_context.Books?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

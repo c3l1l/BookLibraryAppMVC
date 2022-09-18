@@ -4,10 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BookLibraryAppMVC.Models
 {
-    public class Book
+    public class Book 
     {
         [Key]
-       
         public int Id { get; set; }
         [StringLength (100)]
         [Column (TypeName = "varchar")]

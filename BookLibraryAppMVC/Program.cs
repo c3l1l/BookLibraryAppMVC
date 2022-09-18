@@ -1,11 +1,18 @@
 using BookLibraryAppMVC.DAL;
+using BookLibraryAppMVC.DAL.Abstract;
+using BookLibraryAppMVC.DAL.Concrete;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol.Core.Types;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<BookLibraryDBContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("BookLibraryDB")));
+
+builder.Services.AddScoped<IBookRepository,BookRepository>();
+builder.Services.AddScoped<IAuthorRepository,AuthorRepository>();
+builder.Services.AddScoped<IPublisherRepository, PublisherRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
