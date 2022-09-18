@@ -15,9 +15,9 @@ namespace BookLibraryAppMVC.DAL.Concrete
         {
             return await _db.Books.Include(b=>b.Author).Include(b=>b.Publisher).ToListAsync();
         }
-        public async Task<Book> GetById(int id)
-        {var book=_db.Books.Find(id);
-
+        public async Task<Book> GetById(int? id)
+        {
+            var book=_db.Books.Find(id);
             return await _db.Books.Include(b=>b.Author).Include(b=>b.Publisher).FirstOrDefaultAsync(b=>b.Id==id);
         }
         public async Task Create(Book book)

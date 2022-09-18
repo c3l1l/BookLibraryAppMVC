@@ -28,15 +28,23 @@ namespace BookLibraryAppMVC.Controllers
         // GET: Books
         public async Task<IActionResult> Index()
         {                                 
-            var bookLibraryDBContext = _bookRepository.GetAll();
-           
-            return View(await bookLibraryDBContext);
+                       
+            return View(await _bookRepository.GetAll());
         }
 
         // GET: Books/Details/5
-        public async Task<IActionResult> Details(int id)
-        {   
-           return View(await _bookRepository.GetById(id));
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return RedirectToAction("Index");
+            }
+            var book = await _bookRepository.GetById(id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+           return View(book);
         }
 
         // GET: Books/Create

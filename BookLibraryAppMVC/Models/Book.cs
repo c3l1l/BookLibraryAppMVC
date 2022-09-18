@@ -16,10 +16,10 @@ namespace BookLibraryAppMVC.Models
         public DateTime? DateReleased { get; set; }
         [ForeignKey("Author")]
         [DisplayName("Author")]
-        public int AuthorId { get; set; }
+        public int? AuthorId { get; set; }
         [ForeignKey("Publisher")]
         [DisplayName("Publisher")]
-        public int PublisherId { get; set; }
+        public int? PublisherId { get; set; }
         public int PageCount { get; set; }
 
         public Author? Author { get; set; }
