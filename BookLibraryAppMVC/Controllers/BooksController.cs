@@ -78,7 +78,7 @@ namespace BookLibraryAppMVC.Controllers
         }
 
         // GET: Books/Edit/5
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(int? id)
         {
             if (id == null ||await _bookRepository.GetAll() == null)
             {
@@ -124,14 +124,14 @@ namespace BookLibraryAppMVC.Controllers
         }
 
         // GET: Books/Delete/5
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int? id)
         {
             if (id == null || await _bookRepository.GetAll() == null)
             {
                 return NotFound();
             }
 
-            var book = await _bookRepository.GetById(id);
+            var book = await _bookRepository.GetById((int)id);
             if (book == null)
             {
                 return NotFound();
@@ -149,7 +149,8 @@ namespace BookLibraryAppMVC.Controllers
             {
                 return Problem("Entity set 'BookLibraryDBContext.Books'  is null.");
             }
-            var book = await _bookRepository.GetById(id);
+            var book = await _bookRepository.GetById((int)id);
+            
             if (book != null)
             {
              await _bookRepository.Delete(book);
